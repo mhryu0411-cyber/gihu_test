@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우리나라 사계절 기단 변화 인터랙티브 가이드</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/moonspice/NanumSquare@1.0/nanumsquare.css">
+    <style>
+        /* 기본 스타일 초기화 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'NanumSquare', sans-serif;
+            font-weight: 700;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 메인 컨테이너 */
+        .container {
+            background-color: #ededed;
+            width: 100%;
+            max-width: 1400px;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            border: 1px solid #dcdcdc;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* 헤더 영역 */
+        .header-section {
+            text-align: center;
+        }
+
+        .title {
+            font-size: 38px;
+            color: #111;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        /* 오늘의 미션 바 */
+        .mission-bar {
+            display: inline-block;
+            background-color: #4a6572;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 15px;
+        }
+        .mission-bar span {
+            color: #ffeb3b;
+        }
+
+        /* 대시보드 그리드 구조 */
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 25px;
+            align-items: stretch;
+        }
+
+        /* [좌측] 세로형 계절 선택 바 */
+        .side-season-bar {
+            background-color: #fff;
+            padding: 30px 20px;
+            border-radius: 20px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .season-label {
+            font-size: 22px;
+            color: #222;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ededed;
+        }
+
+        .season-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .season-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 22px 0;
+            font-size: 24px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            color: #aaa;
+            transition: all 0.25s ease;
+        }
+
+        /* 테두리 컬러 가이드 */
+        .btn-spring { border-color: #e2d1dd; color: #a54784; }
+        .btn-summer { border-color: #d1dfed; color: #2b5f94; }
+        .btn-autumn { border-color: #efe5dd; color: #a05a2c; }
+        .btn-winter { border-color: #d3dae5; color: #2e4b7b; }
+
+        .season-buttons.active .season-btn:not(.selected) {
+            opacity: 0.15;
+            background-color: #f8f9fa;
+            border-color: transparent;
+            color: #aaa;
+        }
+
+        .season-btn.selected {
+            opacity: 1 !important;
+            background-color: #fff;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.06);
+            border-width: 3px;
+        }
+
+        /* [우측] 메인 데이터 전시 영역 */
+        .main-content-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 기후 특징 안내 패널 */
+        .air-mass-info-panel {
+            background-color: #fff;
+            border-radius: 16px;
+            padding: 22px 25px;
+            border-left: 6px solid #a54784;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            transition: all 0.25s ease;
+        }
+
+        .panel-tag {
+            display: inline-block;
+            font-size: 13px;
+            background-color: #f0f0f0;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        .panel-text {
+            font-size: 18px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        /* 하단 2열 메인 카드 그리드 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 24px;
+            padding: 35px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            border: 1px solid #e6e6e6;
+        }
+
+        .card-title {
+            font-size: 30px;
+            color: #000;
+            width: 100%;
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        /* 원리 체험 영역 레이아웃 (좌측 카드) */
+        .map-simulator-area {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .korea-map-mock {
+            width: 400px;
+            height: 400px;
+            background-image: url('한반도.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: relative;
+        }
+
+        .air-mass-circle {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background-color: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 26px;
+            color: #444;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.04);
+        }
+        .am-nw { top: 10px; left: 10px; }
+        .am-ne { top: 10px; right: 10px; }
+        .am-sw { bottom: 10px; left: 10px; }
+        .am-se { bottom: 10px; right: 10px; }
+
+        /* 💡 추가: 내가 만드는 지도 이미지 영역 (우측 카드) */
+        .season-map-area {
+            width: 320px;
+            height: 320px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .season-map-image {
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: background-image 0.2s ease; /* 전환 시 부드러운 효과 */
+        }
+
+        /* 링크 버튼 스타일 */
+        .action-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 260px;
+            padding: 15px 0;
+            font-size: 22px;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+        .action-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.1);
+        }
+
+        .btn-blue { background: linear-gradient(to right, #dae7f9, #a9c7ed); color: #2b5f94; }
+        .btn-orange { background: linear-gradient(to right, #fbe6d4, #f2c29e); color: #a05a2c; }
+
+        /* 푸터 통계 바 */
+        .dashboard-summary {
+            background-color: #dcdcdc;
+            border-radius: 12px;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-item {
+            text-align: center;
+            flex: 1;
+            font-size: 14px;
+            color: #555;
+        }
+        .summary-item:not(:last-child) {
+            border-right: 1px solid #ccc;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            color: #222;
+            margin-top: 4px;
+        }
+        .summary-value span {
+            color: #2b5f94;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-section">
+        <h1 class="title">우리나라 사계절 기단 변화</h1>
+        <div class="mission-bar">🎯 오늘의 탐구 미션: <span>각 계절에 알맞은 기압 배치를 완성하고 바람길을 열어보세요!</span></div>
+    </div>
+
+    <div class="dashboard-layout">
+        
+        <div class="side-season-bar">
+            <div class="season-label">계절 선택</div>
+            <div class="season-buttons" id="seasonGroup">
+                <button class="season-btn btn-spring selected" onclick="selectSeason('spring', this)">🌸 봄</button>
+                <button class="season-btn btn-summer" onclick="selectSeason('summer', this)">🌊 여름</button>
+                <button class="season-btn btn-autumn" onclick="selectSeason('autumn', this)">🍂 가을</button>
+                <button class="season-btn btn-winter" onclick="selectSeason('winter', this)">❄️ 겨울</button>
+            </div>
+        </div>
+
+        <div class="main-content-area">
+            <div class="air-mass-info-panel" id="infoPanel">
+                <div class="panel-tag" id="panelTag">봄철 기후 특징</div>
+                <div class="panel-text" id="panelText">이동성 고기압과 <strong>양쯔강 기단</strong>의 영향으로 온난하고 건조하며, 꽃샘추위와 황사 현상이 자주 일어납니다.</div>
+            </div>
+
+            <div class="grid-container">
+                <div class="card">
+                    <div class="card-title">기후 변화 원리 체험</div>
+                    <div class="map-simulator-area">
+                        <div class="korea-map-mock"></div>
+                    </div>
+                    <a id="experienceLink" href="#" class="action-link btn-blue">출발 &gt;</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">내가 만드는 지도 + 변화 보기</div>
+                    <div class="season-map-area">
+                        <div class="season-map-image" id="seasonMapImage"></div>
+                    </div>
+                    <a id="mapLink" href="#" class="action-link btn-orange">제보하기 &gt;</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="dashboard-summary">
+        <div class="summary-item">
+            <div>현재 접속 중인 탐구자 수</div>
+            <div class="summary-value"><span>142</span> 명</div>
+        </div>
+        <div class="summary-item">
+            <div>오늘 생성된 학생 지도 수</div>
+            <div class="summary-value"><span>1,204</span> 개</div>
+        </div>
+        <div class="summary-item">
+            <div>나의 종합 탐구 성취도</div>
+            <div class="summary-value">🏆 <span>Level 3 (우수)</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 클릭 연동 링크 데이터셋
+    const urlMap = {
+        spring: { experience: "https://example.com/spring-experience", map: "https://example.com/spring-map" },
+        summer: { experience: "https://example.com/summer-experience", map: "https://example.com/summer-map" },
+        autumn: { experience: "https://example.com/autumn-experience", map: "https://example.com/autumn-map" },
+        winter: { experience: "https://example.com/winter-experience", map: "https://example.com/winter-map" }
+    };
+
+    // 실시간 내용 및 이미지 맵 데이터셋
+    const seasonData = {
+        spring: { 
+            tag: "봄철 기후 특징", 
+            text: "이동성 고기압과 <strong>양쯔강 기단</strong>의 영향으로 온난하고 건조하며, 꽃샘추위와 황사 현상이 자주 일어납니다.", 
+            color: "#a54784",
+            bgImage: "url('봄.png')"
+        },
+        summer: { 
+            tag: "여름철 기후 특징", 
+            text: "고온다습한 <strong>북태평양 기단</strong>의 지배를 받아 무더운 한여름 날씨와 장마, 태풍 현상이 주로 나타납니다.", 
+            color: "#2b5f94",
+            bgImage: "url('여름.png')"
+        },
+        autumn: { 
+            tag: "가을철 기후 특징", 
+            text: "맑고 높은 하늘을 보여주는 양쯔강 기단 성질의 영향으로 선선하고 건조하며, 첫서리가 내리기 시작합니다.", 
+            color: "#a05a2c",
+            bgImage: "url('가을.png')"
+        },
+        winter: { 
+            tag: "겨울철 기후 특징", 
+            text: "한랭건조한 <strong>시베리아 기단</strong>의 영향으로 삼한사온, 강한 북서 계절풍과 함께 폭설이 내리기도 합니다.", 
+            color: "#2e4b7b",
+            bgImage: "url('겨울.png')"
+        }
+    };
+
+    function selectSeason(season, element) {
+        const group = document.getElementById('seasonGroup');
+        const buttons = group.querySelectorAll('.season-btn');
+        
+        buttons.forEach(btn => btn.classList.remove('selected'));
+        group.classList.add('active');
+        element.classList.add('selected');
+        
+        // 버튼 링크 연동 변경
+        document.getElementById('experienceLink').href = urlMap[season].experience;
+        document.getElementById('mapLink').href = urlMap[season].map;
+
+        // 안내창 정보 업데이트
+        const panel = document.getElementById('infoPanel');
+        panel.style.borderLeftColor = seasonData[season].color;
+        document.getElementById('panelTag').innerText = seasonData[season].tag;
+        document.getElementById('panelText').innerHTML = seasonData[season].text;
+
+        // 💡 우측 카드 내부 이미지 동적 교체 작동
+        document.getElementById('seasonMapImage').style.backgroundImage = seasonData[season].bgImage;
+    }
+
+    // 초기 화면 구동 (봄 기준 선행 로드)
+    window.onload = function() {
+        const defaultBtn = document.querySelector('.btn-spring');
+        selectSeason('spring', defaultBtn);
+    };
+</script>
+
+</body>
+</html>
